@@ -297,6 +297,56 @@ WHEN NOT MATCHED THEN
             connection.close()
 
 
+def select_oracle_status():
+    """Select all regression status from Oracle using python-oracledb"""
+
+    import oracledb
+    import os
+
+    # Oracle 연결 정보
+    oracle_user = os.getenv("ORACLE_USER", "system")
+    oracle_password = os.getenv("ORACLE_PASSWORD", "Oracle123")
+    oracle_dsn = os.getenv("ORACLE_DSN", "localhost:1521/FREEPDB1")
+
+    try:
+        # 연결 생성
+        connection = oracledb.connect(
+            user=oracle_user,
+            password=oracle_password,
+            dsn=oracle_dsn
+        )
+        cursor = connection.cursor()
+
+        # SELECT SQL - 전체 조회
+        select_sql = """SELECT jobid, area, status, progress, start_time, update_time
+                        FROM regression_status
+                        ORDER BY update_time DESC"""
+
+        # 실행 (파라미터 없음)
+        cursor.execute(select_sql)
+
+        # 결과 조회
+        rows = cursor.fetchall()
+
+        if rows:
+            print(f"[ORACLE SELECT] Found {len(rows)} record(s)")
+            for row in rows:
+                print(f"  JobID: {row[0]}, Area: {row[1]}, Status: {row[2]}, Progress: {row[3]}%, Start: {row[4]}, Update: {row[5]}")
+            return rows
+        else:
+            print(f"[ORACLE SELECT] No records found")
+            return None
+
+    except Exception as e:
+        print(f"[ERROR] Oracle select failed: {e}")
+        return None
+    finally:
+        if 'cursor' in locals():
+            cursor.close()
+        if 'connection' in locals():
+            connection.close()
+
+
 if __name__ == "__main__":
     total_time = time.time()
 
@@ -779,10 +829,13 @@ if __name__ == "__main__":
     if os.getenv("TEST_ORACLE", "false").lower() == "true":
         print("[INFO] Oracle connection test enabled...")
         test_oracle_connection(spark)
-                              
-                        
-                        
-                
+
+    # Optional: Select Oracle status
+    if os.getenv("SELECT_ORACLE_STATUS", "false").lower() == "true":
+        print("[INFO] Oracle SELECT enabled...")
+        select_oracle_status()
+
+
 
 
                                                      
