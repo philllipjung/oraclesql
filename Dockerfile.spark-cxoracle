@@ -1,0 +1,25 @@
+FROM yohaim1511/pyspark-miniconda:spark-regression-complete
+
+# Switch to root user
+USER root
+
+# Fix apt directory
+RUN rm -rf /var/lib/apt/lists/* && \
+    mkdir -p /var/lib/apt/lists/partial
+
+# Install system dependencies for Oracle (libaio is required)
+RUN apt-get update && \
+    apt-get install -y libaio1 && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install python-oracledb in hynix environment (Python 3.9.25)
+RUN conda run -n hynix pip install --no-cache-dir oracledb
+
+# Verify installation (Python 3.9 + oracledb in hynix environment)
+RUN conda run -n hynix python -c "import sys; print(f'Python version: {sys.version}')" && \
+    conda run -n hynix python -c "import oracledb; print(f'python-oracledb version: {oracledb.__version__}')"
+
+WORKDIR /workspace
+
+# Set default command to use hynix environment
+ENV CONDA_DEFAULT_ENV="hynix"

@@ -1,0 +1,16 @@
+version: '3.8'
+services:
+  oracle:
+    image: gvenzl/oracle-free:latest
+    container_name: oracle-free-23
+    environment:
+      - ORACLE_PASSWORD=Oracle123
+      - ORACLE_DATABASE=FREEPDB1
+    ports:
+      - "1521:1521"
+    volumes:
+      - oracle-data:/opt/oracle/oradata
+    restart: unless-stopped
+
+volumes:
+  oracle-data:
